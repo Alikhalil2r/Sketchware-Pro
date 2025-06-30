@@ -1,0 +1,305 @@
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const RafiqApp = () => {
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [pets, setPets] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [healthRecords, setHealthRecords] = useState([]);
+  const [petPhotos, setPetPhotos] = useState([]);
+  const [userProfile, setUserProfile] = useState({
+    name: 'أحمد محمد',
+    location: 'القاهرة',
+    joinDate: '2024',
+    petsCount: 0,
+    level: 1,
+    points: 0
+  });
+  const [showAddPet, setShowAddPet] = useState(false);
+  const [showAddReminder, setShowAddReminder] = useState(false);
+  const [showHealthRecord, setShowHealthRecord] = useState(false);
+  const [showPetDetails, setShowPetDetails] = useState(null);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);
+  const [dailyTip, setDailyTip] = useState('');
+  const [isPremium, setIsPremium] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPetFilter, setSelectedPetFilter] = useState('all');
+  const [ads, setAds] = useState([
+    { id: 1, title: 'طعام الحيوانات الأليفة', image: 'https://placehold.co/600x400?text=Pet+Food', link: '#' },
+    { id: 2, title: 'خدمات بيطرية', image: 'https://placehold.co/600x400?text=Vet+Services', link: '#' },
+  ]);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+
+  // Enhanced daily tips with categories
+  const dailyTips = [
+    { text: "تأكد من تغيير الماء يومياً لحيوانك الأليف", category: "تغذية" },
+    { text: "اللعب مع حيوانك الأليف يوميًا مهم لصحته النفسية", category: "نشاط" },
+    { text: "قم بتنظيف أسنان حيوانك الأليف بانتظام", category: "نظافة" },
+    { text: "تأكد من تطعيم حيوانك الأليف في المواعيد المحددة", category: "صحة" },
+    { text: "الرياضة والمشي مهمان لصحة الكلاب", category: "نشاط" },
+    { text: "راقب وزن حيوانك الأليف لتجنب السمنة", category: "صحة" },
+    { text: "قم بفحص أذن حيوانك الأليف بانتظام", category: "فحص" },
+    { text: "التدريب المستمر يعزز الرابط بينك وبين حيوانك", category: "تدريب" },
+    { text: "تجنب إطعام حيوانك الأليف الشوكولاتة والبصل", category: "تغذية" },
+    { text: "وفر مكان آمن ومريح لنوم حيوانك الأليف", category: "راحة" }
+  ];
+
+  // Vet clinics data for Egypt
+  const vetClinics = [
+    { 
+      id: 1, 
+      name: "عيادة الرحمة البيطرية", 
+      address: "القاهرة - حي مصر الجديدة", 
+      phone: "+20123456789",
+      rating: 4.8,
+      reviews: 124,
+      services: ["فحص عام", "تطعيمات", "جراحة", "أشعة"],
+      workingHours: "8:00 ص - 10:00 م",
+      emergency: true,
+      distance: "2.5 كم"
+    },
+    { 
+      id: 2, 
+      name: "مستشفى الحيوانات الأليفة", 
+      address: "الإسكندرية - حي سموحة", 
+      phone: "+20123456789",
+      rating: 4.9,
+      reviews: 89,
+      services: ["فحص عام", "تطعيمات", "جراحة", "أشعة", "مختبر"],
+      workingHours: "24 ساعة",
+      emergency: true,
+      distance: "1.8 كم"
+    },
+    { 
+      id: 3, 
+      name: "عيادة النور البيطرية", 
+      address: "الجيزة - حي الدقي", 
+      phone: "+20123456789",
+      rating: 4.6,
+      reviews: 67,
+      services: ["فحص عام", "تطعيمات", "تنظيف أسنان"],
+      workingHours: "8:00 ص - 8:00 م",
+      emergency: false,
+      distance: "3.2 كم"
+    }
+  ];
+
+  useEffect(() => {
+    const today = new Date().getDate();
+    const tip = dailyTips[today % dailyTips.length];
+    setDailyTip(tip);
+    setUserProfile((prev) => ({ ...prev, petsCount: pets.length }));
+    if (pets.length > 0) {
+      setNotifications([
+        { id: 1, type: 'reminder', message: 'حان وقت طعام لولو', time: 'منذ 5 دقائق' },
+        { id: 2, type: 'health', message: 'موعد تطعيم بوبي غداً', time: 'منذ ساعة' },
+        { id: 3, type: 'tip', message: 'نصيحة جديدة متاحة!', time: 'منذ 3 ساعات' },
+      ]);
+    }
+  }, [pets.length]);
+
+  const addPet = (petData) => {
+    const newPet = {
+      id: Date.now(),
+      ...petData,
+      image: getPetEmoji(petData.type),
+      healthScore: Math.floor(Math.random() * 20) + 80,
+      lastCheckup: new Date().toISOString().split('T')[0],
+      nextVaccination: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      activities: [],
+      weight: petData.weight || 0,
+      mood: 'سعيد',
+      energy: Math.floor(Math.random() * 50) + 50,
+    };
+    setPets([...pets, newPet]);
+    setShowAddPet(false);
+    setUserProfile((prev) => ({
+      ...prev,
+      points: prev.points + 50,
+      level: Math.floor((prev.points + 50) / 100) + 1,
+    }));
+  };
+
+  const getPetEmoji = (type) => {
+    const emojis = {
+      cat: '🐱',
+      dog: '🐕',
+      bird: '🐦',
+      fish: '🐠',
+      rabbit: '🐰',
+      other: '🐾'
+    };
+    return emojis[type] || '🐾';
+  };
+
+  const addReminder = (reminderData) => {
+    const newReminder = {
+      id: Date.now(),
+      ...reminderData,
+      status: 'active',
+      completed: false,
+      recurring: reminderData.recurring || false,
+    };
+    setReminders([...reminders, newReminder]);
+    setShowAddReminder(false);
+  };
+
+  const addHealthRecord = (recordData) => {
+    const newRecord = {
+      id: Date.now(),
+      ...recordData,
+      date: new Date().toISOString().split('T')[0],
+    };
+    setHealthRecords([...healthRecords, newRecord]);
+    setShowHealthRecord(false);
+  };
+
+  const deletePet = (petId) => {
+    setPets(pets.filter((pet) => pet.id !== petId));
+  };
+
+  const deleteReminder = (reminderId) => {
+    setReminders(reminders.filter((reminder) => reminder.id !== reminderId));
+  };
+
+  const completeReminder = (reminderId) => {
+    setReminders(
+      reminders.map((reminder) =>
+        reminder.id === reminderId
+          ? { ...reminder, completed: true, status: 'completed' }
+          : reminder
+      )
+    );
+    setUserProfile((prev) => ({
+      ...prev,
+      points: prev.points + 10,
+    }));
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  const filteredPets = pets.filter((pet) => {
+    const matchesSearch =
+      pet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pet.breed.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter =
+      selectedPetFilter === 'all' || pet.type === selectedPetFilter;
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleAdChange = (direction) => {
+    setCurrentAdIndex((prevIndex) =>
+      direction === 'next'
+        ? (prevIndex + 1) % ads.length
+        : (prevIndex - 1 + ads.length) % ads.length
+    );
+  };
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 bg-green-600 text-white">
+        <h1 className="text-xl font-bold">رعاية حيواناتك</h1>
+        <button onClick={toggleDarkMode} className="p-2 rounded-full bg-green-700">
+          {darkMode ? '🌙' : '☀️'}
+        </button>
+      </header>
+
+      {/* Main Content */}
+      <main className="p-4">
+        {currentScreen === 'home' && (
+          <section>
+            <h2 className="text-lg font-bold mb-4">مرحبًا، {userProfile.name}</h2>
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2">نصيحة اليوم:</h3>
+              <p>{dailyTip.text}</p>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2">إعلاناتنا:</h3>
+              <div className="relative w-full h-48 overflow-hidden rounded-lg">
+                <img
+                  src={ads[currentAdIndex].image}
+                  alt={ads[currentAdIndex].title}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  onClick={() => handleAdChange('prev')}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white text-gray-900 p-2 rounded-full"
+                >
+                  &lt;
+                </button>
+                <button
+                  onClick={() => handleAdChange('next')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white text-gray-900 p-2 rounded-full"
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Add Pet Form */}
+        {showAddPet && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">إضافة حيوان أليف جديد</h2>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addPet({ name: 'لولو', type: 'cat', breed: 'سيامي' });
+                }}
+                className="space-y-4"
+              >
+                <input
+                  type="text"
+                  placeholder="اسم الحيوان"
+                  className="w-full p-3 border rounded-lg"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-green-600 text-white p-3 rounded-lg font-bold"
+                >
+                  إضافة
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPet(false)}
+                  className="w-full bg-gray-300 text-gray-700 p-3 rounded-lg font-bold"
+                >
+                  إلغاء
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-green-600 text-white p-4 flex justify-between items-center">
+        <button
+          onClick={() => setCurrentScreen('home')}
+          className="flex flex-col items-center"
+        >
+          <span>🏠</span>
+          <span>الرئيسية</span>
+        </button>
+        <button
+          onClick={() => setShowAddPet(true)}
+          className="flex flex-col items-center"
+        >
+          <span>+</span>
+          <span>إضافة حيوان</span>
+        </button>
+      </footer>
+    </div>
+  );
+};
+
+export default RafiqApp;
+```
